@@ -1,3 +1,4 @@
 def temporary():
-    a=input().split(",")
+    a=input()
     print(f"{a}")
+

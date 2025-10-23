@@ -3,23 +3,20 @@ import io
 
 from temporary import temporary
 
-def check_output(func_input: list[str],output: list[str]):
+def check_output(func_input: list, output: list[str]):
 	original_stdin = sys.stdin
 
 	sys_stdout = sys.stdout
-	func_output=[]
+	right_output=[]
 	for i in func_input:
-		print(i)
 		buffer = io.StringIO()
-		print(buffer.getvalue())
 		sys.stdout = buffer
 		sys.stdin = io.StringIO(i)
 		temporary()
-		print(buffer.getvalue())
-		func_output.append(buffer.getvalue().strip())
+		right_output.append(buffer.getvalue().strip() == output[i])
 
 	sys.stdout = sys_stdout
 	sys.stdin = original_stdin
-	print(func_output)
+	return not(False in right_output)
 
 check_output(["Алиса","123","ВАЫВАВЫА"],["Алиса","123","ВАЫВАВЫА"])
