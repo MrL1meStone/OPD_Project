@@ -1,22 +1,23 @@
 import sys
 import io
 
-from temporary import temporary
+from contextlib import redirect_stdout
 
-def check_output(func_input: list, output: list[str]):
+from modules.temporary import temporary
+
+def check_output(input_func, output_func: function):
 	original_stdin = sys.stdin
-
 	sys_stdout = sys.stdout
-	right_output=[]
-	for i in func_input:
-		buffer = io.StringIO()
-		sys.stdout = buffer
-		sys.stdin = io.StringIO(i)
-		temporary()
-		right_output.append(buffer.getvalue().strip() == output[i])
+	is_right_output=[]
+	for i in range(5):
+		input_data=input_func()
+		f = io.StringIO()
+		with redirect_stdout(f):
+			sys.stdin = io.StringIO(input_data)
+			temporary()
+		out = f.getvalue()
+		is_right_output.append(out.strip() == output_func(input_data))
 
 	sys.stdout = sys_stdout
 	sys.stdin = original_stdin
-	return not(False in right_output)
-
-check_output(["Алиса","123","ВАЫВАВЫА"],["Алиса","123","ВАЫВАВЫА"])
+	return False not in is_right_output

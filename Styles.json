@@ -1,0 +1,15 @@
+{
+  "PyCharm" : {
+    "font" : {
+      "name" : "DejaVu Sans Mono",
+      "size" : 12 },
+    "bg" : "#1e1f22",
+    "second_bg" : "#19191c",
+    "syntax": {
+      "keywords" : "#f76f1b",
+      "int" : "#36adf7",
+      "str" : "#448740",
+      "error" : "#c11805"
+    }
+  }
+}
