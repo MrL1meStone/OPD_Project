@@ -1,6 +1,7 @@
 import json
 from tkinter import *
 from tkinter import ttk
+from modules.randfuncs import randstr
 
 from Questions.Easy import easy_questions
 from modules.module_writer import make_module
@@ -23,25 +24,43 @@ class CustomStyle(ttk.Style):
         with open('Styles.json') as file:
             style = json.load(file)[style_name]
 
-        font, bg, second_bg = style['font'], style['bg'], style['second_bg']
-
+        font = style['font']
         self.font = (font['name'], font['size'])
         self.header = (font['name'], font['size']+2)
-        self.bg = bg
-        self.second_bg = second_bg
-        self.fg = get_fg(bg)
-        self.second_fg = get_fg(second_bg)
-        self.configure(style = '.', font=self.font, bg=bg, foreground=self.fg)
+        self.bg = style['bg']
+        self.second_bg = style['second_bg']
+        self.fg = get_fg(self.bg)
+        self.second_fg = get_fg(self.second_bg)
+        syntax = style['syntax']
+        self.keyword_color = syntax['keywords']
+        self.int = syntax['int']
+        self.str = syntax['str']
+        self.configure(style = '.', font=self.font, bg=self.bg, foreground=self.fg)
         self.configure(style = 'TLabel', background=self.bg, font=self.font)
         self.configure(style = 'TFrame', background=self.bg)
-        self.configure(style = 'TButton',)
-        self.configure(style = '')
+        self.configure(style = 'Tk', background=self.bg)
         self.map(style='TButton',
-                 background=[("active", second_bg), ("!disabled", bg)],
+                 background=[("active", self.second_bg), ("!disabled", self.bg)],
                  foreground=[("active", self.second_fg), ("!disabled", self.fg)])
 
     def get(self, parameters: list[str] = None):
         return dict(zip(parameters, [self.__getattribute__(i) for i in parameters]))
+
+
+class StylishText(Text):
+    def __init__(self,widget,style,fg,height,width,disabled=True):
+        super().__init__(widget,
+        height = height, width = width, border = 0.0,
+        bd = 0, highlightthickness = 0,
+        bg = style.second_bg,
+        font = style.font,
+        foreground = fg, state = 'disabled' if disabled else 'normal')
+        self.style=style
+
+    def color_text(self,row, index,word,color):
+        tag_name = randstr()
+        self.tag_add(tag_name, f'{row}.{index - len(word)}', f'{row}.{index}')
+        self.tag_configure(tag_name, font=self.style.font, foreground=color)
 
 
 class MainWindow(Tk):
@@ -83,8 +102,6 @@ class MainWindow(Tk):
         #Выбор тем
 
 
-
-
     def add_text(self):
         for widget in self.winfo_children():
             widget.destroy()
@@ -97,6 +114,7 @@ class MainWindow(Tk):
             indent = "    " * last_row.count("    ")
             extra_indent = (":\n" == rows[-2:]) * "    "
             ide.insert(END, "\n" + extra_indent + indent)
+            color_syntax(event)
             return "break"
 
         def check():
@@ -112,11 +130,18 @@ class MainWindow(Tk):
                 self.current_question.set(current_question + step)
 
         def color_syntax(event):
-            print('Space!')
-            keywords=['False', 'class', 'from', 'or', 'None', 'continue', 'global', 'pass',
+            row, index = map(int, ide.index(INSERT).split('.'))
+            word = ide.get(f'{row}.0', f'{row}.{index}').strip().split(" ")[-1]
+            keywords=('False', 'class', 'from', 'or', 'None', 'continue', 'global', 'pass',
              'True', 'def', 'if', 'raise', 'and', 'del', 'import', 'return', 'as',
              'elif', 'in', 'try', 'assert', 'else', 'is', 'while', 'async', 'except',
-             'lambda', 'with', 'await', 'finally', 'nonlocal', 'yield', 'break', 'for', 'not']
+             'lambda', 'with', 'await', 'finally', 'nonlocal', 'yield', 'break', 'for', 'not')
+            if word in keywords:
+                ide.color_text(row,index,word,self.style.keyword_color)
+            if len(word)>1 and word[-1]=="(":
+                ide.color_text(row,index-1,word,self.style.int)
+            if word.startswith("'") and word.endswith("'") or word.startswith('"') and word.endswith('"'):
+                ide.color_text(row,index,word,self.style.str)
 
         def disable_scroll(event):
             return "break"
@@ -125,10 +150,8 @@ class MainWindow(Tk):
             # Получаем все строки
             text_lines = ide.get("1.0", "end-1c").split("\n")
             if len(text_lines) >= 16 and event.keysym not in ("BackSpace", "Delete", "Return"):
-                # Если строк уже максимум — блокируем ввод новой
                 current_index = ide.index(INSERT)
                 line, col = map(int, current_index.split('.'))
-                # Разрешаем ввод только в пределах существующих строк
                 if line >= 16:
                     return "break"
 
@@ -140,21 +163,13 @@ class MainWindow(Tk):
 
         error_frame=ttk.Frame(main_frame)
         ttk.Label(error_frame,text='Ошибки',font=self.style.header).pack(pady=40)
-        errors = Text(error_frame,height=20, width=30, border=0.0,
-                    bd=0, highlightthickness=0,
-                    bg=self.style.second_bg,
-                    font=self.style.font,
-                    foreground='#c11805',state='disabled')
+        errors = StylishText(error_frame,height=20, width=30,fg='red',style=self.style)
         errors.pack()
         ttk.Button(error_frame,text='Сдать').pack(pady=10)
 
 
         code_frame = ttk.Frame(code_space)
-        numbers = Text(code_frame,height=20, width=3, border=0.0,
-                    bd=0, highlightthickness=0,
-                    bg=self.style.second_bg,
-                    foreground='gray',
-                    font=self.style.font)
+        numbers = StylishText(code_frame, height=20, width=3, style=self.style, fg = 'gray')
         numbers.pack(side='left',fill='y')
         numbers.configure(state='normal')
         for i in range(20):
@@ -164,14 +179,13 @@ class MainWindow(Tk):
         self.question_text.set(QUESTIONS[self.difficulty.get()][self.current_question.get()]['text'])
         label = ttk.Label(code_space,textvariable=self.question_text, font = self.style.header)
         label.pack(pady=40)
-        ide = Text(code_frame,height=15, width=70, border=0.0,
-                    bd=0, highlightthickness=0,
-                    bg=self.style.second_bg,
-                    **self.style.get(['font', 'fg']))
+        ide = StylishText(code_frame,height=15, width=70,
+                          fg=self.style.fg,style=self.style, disabled=False)
 
         ide.bind("<Return>", indents)
         ide.bind("<KeyPress>", on_key)
         ide.bind("<space>", color_syntax)
+        ide.bind("<KeyPress>", color_syntax, add=True)
 
         ide.bind("<Button-4>", disable_scroll)
         ide.bind("<Button-5>", disable_scroll)
@@ -179,8 +193,8 @@ class MainWindow(Tk):
 
         ide.bind("<Up>", disable_scroll)
         ide.bind("<Down>", disable_scroll)
-        ide.bind("<Prior>", disable_scroll)  # PgUp
-        ide.bind("<Next>", disable_scroll)  # PgDn
+        ide.bind("<Prior>", disable_scroll)
+        ide.bind("<Next>", disable_scroll)
 
         ide.pack(anchor='center',side='left',fill="both")
         code_frame.pack()
