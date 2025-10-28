@@ -10,21 +10,28 @@ from modules.module_writer import make_module
 
 QUESTIONS = [easy_questions]#,normal_questions,hard_questions
 
+KEYWORDS=('False', 'class', 'from', 'or', 'None', 'continue', 'global', 'pass',
+             'True', 'def', 'if', 'raise', 'and', 'del', 'import', 'return', 'as',
+             'elif', 'in', 'try', 'assert', 'else', 'is', 'while', 'async', 'except',
+             'lambda', 'with', 'await', 'finally', 'nonlocal', 'yield', 'break', 'for', 'not')
+
 
 class CustomStyle(ttk.Style):
-    def __init__(self, style_name):
+    def __init__(self, style_name="PyCharm"):
         super().__init__()
 
         def get_rgb(background):
             return [int(background[i:i + 2], 16) for i in range(1, 6, 2)]
 
         def get_fg(background):
-            return 'White' if sum(get_rgb(background)) <= 256 * 3 / 2 else "Black"
+            return 'white' if sum(get_rgb(background)) <= 256 * 3 / 2 else "black"
 
         with open('Styles.json') as file:
-            style = json.load(file)[style_name]
+            styles = json.load(file)
 
+        style=styles[style_name]
         font = style['font']
+        self.all_styles=styles
         self.font = (font['name'], font['size'])
         self.header = (font['name'], font['size']+2)
         self.bg = style['bg']
@@ -38,7 +45,8 @@ class CustomStyle(ttk.Style):
         self.configure(style = '.', font=self.font, bg=self.bg, foreground=self.fg)
         self.configure(style = 'TLabel', background=self.bg, font=self.font)
         self.configure(style = 'TFrame', background=self.bg)
-        self.configure(style = 'Tk', background=self.bg)
+        self.configure(style = 'TCombobox', background=self.bg,
+                       font=self.font,foreground=self.fg)
         self.map(style='TButton',
                  background=[("active", self.second_bg), ("!disabled", self.bg)],
                  foreground=[("active", self.second_fg), ("!disabled", self.fg)])
@@ -48,14 +56,18 @@ class CustomStyle(ttk.Style):
 
 
 class StylishText(Text):
-    def __init__(self,widget,style,fg,height,width,disabled=True):
+    def __init__(self,widget,style,fg,height,width,text=None,disabled=True):
         super().__init__(widget,
         height = height, width = width, border = 0.0,
         bd = 0, highlightthickness = 0,
         bg = style.second_bg,
         font = style.font,
-        foreground = fg, state = 'disabled' if disabled else 'normal')
+        foreground = fg)
         self.style=style
+        if text:
+            self.insert("1.0",text)
+        if disabled:
+            self.configure(state = 'disabled',exportselection=False)
 
     def color_text(self,row, index,word,color):
         tag_name = randstr()
@@ -99,8 +111,9 @@ class MainWindow(Tk):
         for i,text in enumerate(['Легкий','Средний','Сложный']):
             ttk.Button(self, text=text, command=lambda x=i: set_difficulty(x), width=20).pack(pady=10)
 
-        #Выбор тем
-
+        # Выбор темы
+        ttk.Label(text='Или посмотрите темы',font = self.style.header).pack(pady=(100, 70))
+        ttk.Button(text='Темы', width=20,command=self.styles).pack(pady=10)
 
     def add_text(self):
         for widget in self.winfo_children():
@@ -132,16 +145,20 @@ class MainWindow(Tk):
         def color_syntax(event):
             row, index = map(int, ide.index(INSERT).split('.'))
             word = ide.get(f'{row}.0', f'{row}.{index}').strip().split(" ")[-1]
-            keywords=('False', 'class', 'from', 'or', 'None', 'continue', 'global', 'pass',
-             'True', 'def', 'if', 'raise', 'and', 'del', 'import', 'return', 'as',
-             'elif', 'in', 'try', 'assert', 'else', 'is', 'while', 'async', 'except',
-             'lambda', 'with', 'await', 'finally', 'nonlocal', 'yield', 'break', 'for', 'not')
-            if word in keywords:
+            if word in KEYWORDS:
                 ide.color_text(row,index,word,self.style.keyword_color)
             if len(word)>1 and word[-1]=="(":
                 ide.color_text(row,index-1,word,self.style.int)
             if word.startswith("'") and word.endswith("'") or word.startswith('"') and word.endswith('"'):
                 ide.color_text(row,index,word,self.style.str)
+            try:
+                print(word)
+                for j in ("+","-","/","//","%","*","**","="):
+                    for char in word.split(j):
+                        int(char)
+                        ide.color_text(row,index-len(word)+word.index(char),char,self.style.int)
+            except ValueError:
+                pass
 
         def disable_scroll(event):
             return "break"
@@ -155,7 +172,7 @@ class MainWindow(Tk):
                 if line >= 16:
                     return "break"
 
-        ttk.Button(text='< Меню',command=lambda: self.menu()).pack(pady=(100,0),padx=(100,0),anchor='w')
+        ttk.Button(text='< Меню', command=lambda: self.menu()).pack(pady=(100, 0), padx=(100, 0), anchor='w')
 
         main_frame = ttk.Frame(self)
 
@@ -219,6 +236,64 @@ class MainWindow(Tk):
         error_frame.pack(side='left', expand=True, padx=0,fill='y')
         main_frame.pack(anchor='center', expand=True)
 
+    def styles(self):
+        for widget in self.winfo_children():
+            widget.destroy()
+
+        def set_theme():
+            theme = combo.curselection()[0]
+            theme = combo.get(theme, theme)[0]
+
+            for i in widgets_frame.winfo_children():
+                i.destroy()
+
+            self.style=CustomStyle(theme)
+            self.styles()
+
+        def preview_theme(event):
+            for i in widgets_frame.winfo_children():
+                i.destroy()
+
+            theme = combo.curselection()[0]
+            theme = combo.get(theme, theme)[0]
+            style=CustomStyle(theme)
+            self.configure(bg=style.bg)
+            StylishText(widgets_frame, text=f'\n{'Пример текста': ^20}\n',
+                        fg=style.fg, style=style,
+                        height=3, width=20,disabled=True).pack(side='top', fill='x')
+            bottom_frame = ttk.Frame(widgets_frame)
+            ttk.Button(bottom_frame, text='Кнопка').pack(side='left')
+            ttk.Label(bottom_frame, text='Текст').pack(side='left', padx=20)
+            bottom_frame.pack(fill='x')
+
+        ttk.Button(self,text='< Меню',
+                   command=lambda: self.menu()
+                   ).pack(pady=(100, 0), padx=(100, 0), anchor='w')
+
+        main_frame = ttk.Frame(self)
+
+        style_frame=ttk.Frame(main_frame)
+        themes = tuple(self.style.all_styles.keys())
+        variable = Variable(value=themes[:-1])
+        combo=Listbox(style_frame,background=self.style.bg,font=self.style.font,
+                      foreground=self.style.fg,listvariable=variable,
+                      selectmode=SINGLE,height=len(themes)-1)
+        combo.bind("<<ListboxSelect>>",preview_theme)
+        combo.pack(pady=10)
+        ttk.Button(style_frame,command=set_theme,text='Установить стиль',width=20).pack(pady=10)
+        style_frame.pack(fill='y',side='left',padx=10)
+
+        widgets_frame = ttk.Frame(main_frame)
+        StylishText(widgets_frame, text=f'\n{'Пример текста': ^20}\n',
+                    fg=self.style.fg, style=self.style,
+                    height=3, width=20,disabled=True).pack(side='top', fill='x')
+        bottom_frame = ttk.Frame(widgets_frame)
+        ttk.Button(bottom_frame, text='Кнопка').pack(side='left')
+        ttk.Label(bottom_frame, text='Текст').pack(side='left', padx=20)
+        bottom_frame.pack(fill='x')
+        widgets_frame.pack(side='left',fill='y', padx=10)
+
+        main_frame.pack(anchor='center',expand=True)
 
 def main():
     window = MainWindow()
