@@ -3,9 +3,9 @@ import io
 
 from contextlib import redirect_stdout
 
-from modules.temporary import temporary
+from Testing.temporary import temporary
 
-def check_output(input_func, output_func: function):
+def check_output(input_func, output_func):
 	original_stdin = sys.stdin
 	sys_stdout = sys.stdout
 	is_right_output=[]
@@ -13,10 +13,10 @@ def check_output(input_func, output_func: function):
 		input_data=input_func()
 		f = io.StringIO()
 		with redirect_stdout(f):
-			sys.stdin = io.StringIO(input_data)
+			sys.stdin = io.StringIO("\n".join(input_data.values()))
 			temporary()
-		out = f.getvalue()
-		is_right_output.append(out.strip() == output_func(input_data))
+			out = f.getvalue()
+		is_right_output.append(out.strip() == output_func(**input_data))
 
 	sys.stdout = sys_stdout
 	sys.stdin = original_stdin

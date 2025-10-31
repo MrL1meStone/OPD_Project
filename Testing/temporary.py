@@ -1,4 +1,4 @@
 def temporary():
-	def main():
-		123
+	a=input()
+	print(a)
 	

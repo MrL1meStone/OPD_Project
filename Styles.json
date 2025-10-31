@@ -1,29 +1,33 @@
 {
-  "PyCharm" : {
-    "font" : {
-      "name" : "DejaVu Sans Mono",
-      "size" : 12 },
-    "bg" : "#1e1f22",
-    "second_bg" : "#19191c",
+  "selected": "PyCharm",
+  "PyCharm": {
+    "font": {
+      "name": "DejaVu Sans Mono",
+      "size": 12
+    },
+    "bg": "#1e1f22",
+    "second_bg": "#19191c",
     "syntax": {
-      "keywords" : "#f76f1b",
-      "int" : "#36adf7",
-      "str" : "#448740",
-      "error" : "#c11805"
+      "keywords": "#f76f1b",
+      "int": "#36adf7",
+      "str": "#448740",
+      "func": "#2976a5",
+      "error": "#c11805"
     }
   },
-  "VScode" : {
-    "font" : {
-      "name" : "DejaVu Sans Mono",
-      "size" : 12 },
-    "bg" : "#23293d",
-    "second_bg" : "#141928",
+  "VScode": {
+    "font": {
+      "name": "DejaVu Sans Mono",
+      "size": 12
+    },
+    "bg": "#23293d",
+    "second_bg": "#141928",
     "syntax": {
-      "keywords" : "#f76f1b",
-      "int" : "#36adf7",
-      "str" : "#448740",
-      "error" : "#c11805"
+      "keywords": "#f76f1b",
+      "int": "#36adf7",
+      "str": "#448740",
+      "func": "#2976a5",
+      "error": "#c11805"
     }
-  },
-  "selected": "PyCharm"
+  }
 }
