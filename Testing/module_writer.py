@@ -9,4 +9,4 @@ def make_module(text: str):
 		module.write('def temporary():\n')
 		text=text.split("\n")
 		for line in text:
-			module.write(f'	{line}\n')
+			module.write(f'\t{line}\n')
