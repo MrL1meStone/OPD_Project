@@ -2,7 +2,7 @@ import json
 from tkinter import ttk
 
 class CustomStyle(ttk.Style):
-    def __init__(self, style_name="PyCharm"):
+    def __init__(self, style_name=None):
         super().__init__()
 
         def get_rgb(background):
@@ -13,6 +13,9 @@ class CustomStyle(ttk.Style):
 
         with open('Styles.json') as file:
             styles = json.load(file)
+
+        if style_name is None:
+            style_name = styles['selected']
 
         style=styles[style_name]
         font = style['font']

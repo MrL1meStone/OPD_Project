@@ -12,13 +12,17 @@ class StylishText(Text):
 	             text=None,
 	             disabled=True,
 	             selection=True,
-	             fg=None):
+	             fg=None,
+	             bg=None):
+
+		if not bg:
+			bg=style.second_bg
 
 		if not fg:
 			fg = style.fg
 
 		super().__init__(widget, height=height, width=width, border=0.0,
-		                 bd=0, highlightthickness=0, bg=style.second_bg,
+		                 bd=0, highlightthickness=0, bg=bg,
 		                 font=style.font, foreground=fg)
 
 		self.style = style

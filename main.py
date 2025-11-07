@@ -13,6 +13,7 @@ from Questions.Easy import *
 from Questions.Normal import *
 from Widgets.CustomStyle import CustomStyle
 from Widgets.StylishText import StylishText
+from Widgets.CustomError import CustomError
 from Widgets.IDE import IDE
 
 
@@ -32,11 +33,7 @@ class MainWindow(Tk):
                       f"+{(screen_height - size[1]) // 2}")
         self.title("Тест по знанию Python")
 
-        # Визуал
-        with open('Styles.json', 'r', encoding='utf-8') as file:
-            style=json.load(file)['selected']
-
-        self.style = CustomStyle(style)
+        self.style = CustomStyle()
         self.configure(bg=self.style.bg)
 
         # Переменные
@@ -75,8 +72,8 @@ class MainWindow(Tk):
             if right:
                 errors_tab.write_text(text="Все верно!",clear=True,color='green')
             if error:
-                error = error.split('temporary.py", ')[-1]
                 errors_tab.write_text(text=error,clear=True)
+                CustomError(error,self.style)
     
         def move_question(step):
             """ Навигация по вопросам """

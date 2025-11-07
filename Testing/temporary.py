@@ -1,4 +1,4 @@
 def temporary():
-    print(input())
+    1+'1'
     
     pass
