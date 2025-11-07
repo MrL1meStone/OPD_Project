@@ -72,12 +72,10 @@ class MainWindow(Tk):
             make_module(ide.get('1.0', END))
             question = QUESTIONS[self.difficulty.get()][self.current_question.get()]
             right,error = check_output(input_func=question['args'], output_func=question['func'])
-            print(error)
-            error = error.split('temporary.py", ')[-1]
-            print(error)
             if right:
                 errors_tab.write_text(text="Все верно!",clear=True,color='green')
             if error:
+                error = error.split('temporary.py", ')[-1]
                 errors_tab.write_text(text=error,clear=True)
     
         def move_question(step):

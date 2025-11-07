@@ -1,8 +1,6 @@
 import sys
 import io
 import traceback
-import importlib
-import builtins
 from contextlib import redirect_stdout
 
 def check_output(input_func, output_func):

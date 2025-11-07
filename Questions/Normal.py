@@ -2,18 +2,12 @@ from random import randint, choice
 from Testing.randfuncs import randstr
 
 
-def first(a):
-	return str("четное" if a % 2 == 0 else "нечетное")
-
-
 def second(lst):
-	lst = list(map(int, lst.split()))
-	return str(sum(lst))
+	return str(sum(list(map(int, lst.split(" ")))))
 
 
 def third(a):
-	vowels = "aeiouаеёиоуыэюя"
-	return str(sum(ch.lower() in vowels for ch in a))
+	return str(sum(ch.lower() in "aeiouаеёиоуыэюя" for ch in a))
 
 
 def fourth(a):
@@ -53,7 +47,7 @@ def tenth(a, b):
 normal_questions = [
 	{
 		"text": 'Введите число и выведите четное оно или нет',
-		"func": first,
+		"func": lambda a: str("четное" if a % 2 == 0 else "нечетное"),
 		"args": lambda: {'a': str(randint(1, 1000))}
 	},
 	{

@@ -1,7 +1,10 @@
-import re
+import tokenize
+import keyword
+import io
 
 from tkinter import END, INSERT, TclError
 from Widgets.StylishText import StylishText
+from tokenize import TokenError
 
 
 def disable_scroll(event):
@@ -26,17 +29,6 @@ OPERATIONS = ('+', '-', '/', '//', '%', '*',
                   '<', '>=', '<=', '[', ']',
                   '{', '}', '(', ')', '"', "'",' ')
 
-KEYWORDS = ('False', 'class', 'from', 'or',
-            'None', 'continue', 'global',
-            'pass', 'True', 'def', 'if',
-            'raise', 'and', 'del', 'import',
-            'return', 'as', 'elif', 'in',
-            'try', 'assert', 'else', 'is',
-            'while', 'async', 'except',
-            'lambda', 'with', 'await',
-            'finally', 'nonlocal',
-            'yield', 'break', 'for', 'not')
-
 
 class IDE(StylishText):
 	def __init__(self, widget, style):
@@ -46,23 +38,28 @@ class IDE(StylishText):
 
 		self.style = style
 
+		self.tag_configure("keyword", foreground=self.style.keyword)
+		self.tag_configure("string", foreground=self.style.str)
+		self.tag_configure("comment", foreground=self.style.comment)
+		self.tag_configure("number", foreground=self.style.int)
+
 		self.bind("<Return>", self.indents)
 		self.bind("<Tab>", self.move_right)
 		self.bind("<KeyPress>", self.on_key)
+		self.bind("<KeyPress>", self.trigger_highlight, add = True)
+
+		self.bind("<<Paste>>", self.trigger_highlight)
+		self.bind("<Control-v>", self.trigger_highlight)
+		self.bind("<Control-V>", self.trigger_highlight)
+		self.bind("<Button-2>", self.trigger_highlight)
+		self.bind("<Button-3>", self.trigger_highlight)
+
 		self.bind("<KeyPress-ISO_Left_Tab>", self.move_left)
 		self.bind("<KeyPress-BackSpace>", self.delete_spaces)
-		self.bind("<KeyPress-space>", self.color_keywords)
-		self.bind("<KeyPress-quotedbl>", self.color_strings)
-		self.bind("<KeyPress-apostrophe>", self.color_strings)
-		self.bind("<KeyPress-parenleft>", self.color_funcs)
 		self.bind("<KeyPress-quotedbl>", self.replace_quotes, add=True)
 		self.bind("<KeyPress-apostrophe>", self.replace_quotes, add=True)
 		self.bind("<KeyPress-quotedbl>", self.wrap_selected, add=True)
 		self.bind("<KeyPress-apostrophe>", self.wrap_selected, add=True)
-		self.bind("<KeyPress-period>", self.color_int, add=True)
-
-		for i in range(10):
-			self.bind(f'<KeyPress-{i}>', self.color_int, add=True)
 
 		for i in BRACKET_EVENTS:
 			self.bind(i, self.wrap_selected, add=True)
@@ -73,6 +70,36 @@ class IDE(StylishText):
 
 	def insert_index(self):
 		return self.index(INSERT).split(".")
+
+	def highlight(self, event=None):
+		code = self.get("1.0", "end-1c")
+		for tag in ("keyword", "string", "comment", "number"):
+			self.tag_remove(tag, "1.0", "end")
+		try:
+			tokens = tokenize.generate_tokens(io.StringIO(code).readline)
+			for tok_type, tok_str, start, end, _ in tokens:
+				tag = None
+				if tok_str in keyword.kwlist:
+					tag = "keyword"
+				elif tok_type == tokenize.STRING:
+					tag = "string"
+				elif tok_type == tokenize.NUMBER:
+					tag = "number"
+				elif tok_type == tokenize.COMMENT:
+					tag = "comment"
+
+				if tag is None:
+					continue
+
+				start = f"{start[0]}.{start[1]}"
+				end = f"{end[0]}.{end[1]}"
+
+				self.tag_add(tag, start, end)
+		except TokenError:
+			pass
+
+	def trigger_highlight(self,event=None):
+		self.after_idle(self.highlight)
 
 	def indents(self, event):
 		""" Автоматически создает отступы в
@@ -87,75 +114,34 @@ class IDE(StylishText):
 		self.insert(INSERT, "\n" + extra_indent + indent)
 		return "break"
 
-	def color_keywords(self, event):
-		line, char = map(int, self.index("insert").split('.'))
-		row = self.get(f'{line}.0', f'{line}.{char}').strip()
-		word = row.split(" ")[-1]
-		last_char = row.rfind(word)
-
-		if word in KEYWORDS:
-			self.color_index(f'{line}.{last_char}',INSERT,self.style.keyword_color)
-
 	def on_key(self, event):
 		line = self.insert_index()[0]
 		if event.keysym not in CLEANERS and int(line) >= 21:
 			return "break"
 		return None
 
-	def color_strings(self, event):
-		try:
-			self.index('sel.first')
-			return None
-		except TclError:
-			self.insert(INSERT, event.char * 2)
-			line, char = map(int, self.insert_index())
-			row = self.get(f'{line}.0', INSERT)
-
-			for quote in QUOTES:
-				matches = [match.start() for match in re.finditer(quote, row)]
-				if len(matches) % 2 == 0 and len(matches) >= 2:
-					matches = matches[-2:]
-					self.color_index(f'{line}.{matches[0]}', f'{line}.{matches[1] + 1}', self.style.str)
-			self.mark_set(INSERT, f'{line}.{char-1}')
-			return "break"
-
-	def replace_quotes(self, event):
+	def replace_quotes(self,event):
 		try:
 			sel_start = self.index("sel.first")
 			sel_end = self.index("sel.last")
+			selection = self.get(sel_start,sel_end)
+			if selection==f'"{selection[1:-1]}"':
+				self.replace(sel_start,sel_end,f"'{selection[1:-1]}'")
+			elif selection==f"'{selection[1:-1]}'":
+				self.replace(sel_start, sel_end, f'"{selection[1:-1]}"')
+			else:
+				self.replace(sel_start, sel_end, f'{event.char}{selection}{event.char}')
+		except TclError:
+			self.insert(INSERT, event.char)
+			line, char = self.insert_index()
+			next_char = self.get(INSERT, f'{line}.{int(char) + 1}')
 
-			selection = self.get(sel_start, sel_end)
+			if not next_char or next_char in OPERATIONS:
+				self.insert(INSERT, event.char)
+				self.mark_set(INSERT, f'{line}.{int(char)}')
 
-			for i in (0, 1):
-				if (selection.startswith(QUOTES[i]) and selection.endswith(QUOTES[i])
-						and event.char == QUOTES[i - 1]):
-					selection = selection[1:-1]
-					self.replace(sel_start, sel_end, f"{QUOTES[i - 1]}{selection}{QUOTES[i - 1]}")
-					self.color_index(float(sel_start) - 1.0, float(sel_end) + 1.0, self.style.str)
-				elif i==1:
-					self.wrap_selected(event)
-		finally:
-			return "break"
-
-	def color_int(self, event):
-		self.insert(INSERT, event.char)
-		line, char = map(int, self.insert_index())
-		row = self.get(f'{line}.0', END)
-		self.color_index(f"{line}.{char-1}", f"{line}.{char}", self.style.int)
-		for quote in QUOTES:
-			matches = [match.start() for match in re.finditer(quote, row)]
-			if len(matches) % 2 == 0 and len(matches) >= 2:
-				matches = matches[-2:]
-				self.color_index(f'{line}.{matches[0]}', f'{line}.{matches[1] + 1}', self.style.str)
+		self.highlight()
 		return "break"
-
-	def color_funcs(self,event):
-		line,char = self.insert_index()
-		row = self.get(f'{line}.0', INSERT)
-		func = row.strip().replace("def ","")
-		indexes = [row.rfind(func.split(i)[-1]) for i in OPERATIONS]
-		char = max(indexes)
-		self.color_index(f'{line}.{char}',INSERT,self.style.func)
 
 	def pair_brackets(self, event):
 		self.insert(INSERT, event.char)
@@ -209,16 +195,10 @@ class IDE(StylishText):
 			sel_end = self.index("sel.last")
 			selection = self.get(sel_start, sel_end)
 
-			if event.char in QUOTES:
-				self.replace(sel_start, sel_end, f"{event.char}{selection}{event.char}")
-				self.color_index(sel_start, sel_end+0.2, self.style.str)
-				return "break"
-
 			for i in range(0,6,2):
 				if event.char == BRACKETS[i]:
-					self.insert(sel_start, event.char)
-					self.insert(sel_end+0.2, BRACKETS[i + 1])
-					return "break"
+					self.replace(sel_start,float(sel_end)+0.2, f"{event.char}{selection}{BRACKETS[i + 1]}")
+					self.highlight()
 
 		except TclError as e:
 			return None

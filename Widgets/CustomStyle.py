@@ -27,11 +27,12 @@ class CustomStyle(ttk.Style):
         self.second_fg = get_fg(self.second_bg)
         # --- Синтаксис и его подсветка ---#
         syntax = style['syntax']
-        self.keyword_color = syntax['keywords']
+        self.keyword = syntax['keywords']
         self.int = syntax['int']
         self.str = syntax['str']
         self.func = syntax['func']
         self.error = syntax['error']
+        self.comment = syntax['comment']
 
         # --- Внешний вид виджетов ---#
         self.theme_use('clam')
