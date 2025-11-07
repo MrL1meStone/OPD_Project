@@ -5,8 +5,9 @@ def make_module(text: str):
 		mode = "w"
 	else:
 		mode = "a"
+	text = text.split("\n")
 	with open('Testing/temporary.py', mode) as module:
 		module.write('def temporary():\n')
-		text=text.split("\n")
 		for line in text:
-			module.write(f'\t{line}\n')
+			module.write(f'    {line}\n')
+		module.write('    pass')

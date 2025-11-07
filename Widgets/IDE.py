@@ -24,7 +24,7 @@ KEYS = ("<Button-4>", "<Button-5>", "<MouseWheel>",
 OPERATIONS = ('+', '-', '/', '//', '%', '*',
                   '**', '=', '==', '!=', '>',
                   '<', '>=', '<=', '[', ']',
-                  '{', '}', '(', ')', '"', "'")
+                  '{', '}', '(', ')', '"', "'",' ')
 
 KEYWORDS = ('False', 'class', 'from', 'or',
             'None', 'continue', 'global',
@@ -88,12 +88,13 @@ class IDE(StylishText):
 		return "break"
 
 	def color_keywords(self, event):
-		row, char = map(int, self.index("insert").split('.'))
-		line = self.get(f'{row}.0', f'{row}.{char}').strip()
-		word = line.split(" ")[-1]
+		line, char = map(int, self.index("insert").split('.'))
+		row = self.get(f'{line}.0', f'{line}.{char}').strip()
+		word = row.split(" ")[-1]
+		last_char = row.rfind(word)
 
 		if word in KEYWORDS:
-			self.color_text(row, char, word, self.style.keyword_color)
+			self.color_index(f'{line}.{last_char}',INSERT,self.style.keyword_color)
 
 	def on_key(self, event):
 		line = self.insert_index()[0]
@@ -112,9 +113,10 @@ class IDE(StylishText):
 
 			for quote in QUOTES:
 				matches = [match.start() for match in re.finditer(quote, row)]
-				if len(matches) % 2 == 0:
-					for i in range(0, len(matches), 2):
-						self.color_index(f'{line}.{matches[i]}', f'{line}.{matches[i + 1]+1}', self.style.str)
+				if len(matches) % 2 == 0 and len(matches) >= 2:
+					matches = matches[-2:]
+					self.color_index(f'{line}.{matches[0]}', f'{line}.{matches[1] + 1}', self.style.str)
+			self.mark_set(INSERT, f'{line}.{char-1}')
 			return "break"
 
 	def replace_quotes(self, event):
@@ -142,9 +144,9 @@ class IDE(StylishText):
 		self.color_index(f"{line}.{char-1}", f"{line}.{char}", self.style.int)
 		for quote in QUOTES:
 			matches = [match.start() for match in re.finditer(quote, row)]
-			if len(matches) % 2 == 0:
-				for i in range(0, len(matches), 2):
-					self.color_index(f'{line}.{matches[i]}', f'{line}.{matches[i + 1] + 1}', self.style.str)
+			if len(matches) % 2 == 0 and len(matches) >= 2:
+				matches = matches[-2:]
+				self.color_index(f'{line}.{matches[0]}', f'{line}.{matches[1] + 1}', self.style.str)
 		return "break"
 
 	def color_funcs(self,event):
@@ -152,18 +154,20 @@ class IDE(StylishText):
 		row = self.get(f'{line}.0', INSERT)
 		func = row.strip().replace("def ","")
 		indexes = [row.rfind(func.split(i)[-1]) for i in OPERATIONS]
-		char = max(indexes)+len(func)
-
-		self.color_text(line,char,func,self.style.func)
+		char = max(indexes)
+		self.color_index(f'{line}.{char}',INSERT,self.style.func)
 
 	def pair_brackets(self, event):
 		self.insert(INSERT, event.char)
 		line,char = self.insert_index()
+		next_char = self.get(INSERT, f'{line}.{int(char) + 1}')
 
-		if not self.get(INSERT,f'{line}.{int(char)+1}'):
+		if not next_char or next_char in OPERATIONS:
 			for i in range(0, 6, 2):
 				if BRACKETS[i] == event.char:
 					self.insert(INSERT, BRACKETS[i + 1])
+			self.mark_set(INSERT, f'{line}.{int(char)}')
+
 		return "break"
 
 	def move_right(self, event):
@@ -201,8 +205,8 @@ class IDE(StylishText):
 
 	def wrap_selected(self,event):
 		try:
-			sel_start = float(self.index("sel.first"))
-			sel_end = float(self.index("sel.last"))
+			sel_start = self.index("sel.first")
+			sel_end = self.index("sel.last")
 			selection = self.get(sel_start, sel_end)
 
 			if event.char in QUOTES:

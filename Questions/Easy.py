@@ -31,7 +31,7 @@ def seventh(lst):
 def eighth(a, b):
 	return str(a.count(b))
 
-def ninth(a,b):
+def nineth(a,b):
 	return str(a**b)
 
 def tenth(a,b):
@@ -53,13 +53,13 @@ easy_questions=[
 		        'строка маленькими буквами\n',
 				'СТРОКА БОЛЬШИМИ БУКВАМИ'
 		"func": third,
-		"args": lambda: {'lst': " ".join([randstr() for i in range(randint(1, 20))])}
+		"args": lambda: {'lst': " ".join([randstr() for _ in range(randint(1, 20))])}
 	},
 	{
 		"text": 'Получите список в котором на первом месте стоит id,на 2 - name, на 3 - age и'
 		        ' запакуйте с соответствующими ключами в словарь и выведите его',
 		"func": fourth,
-		"args": lambda: {"lst": " ".join([str(randint(1,10**12))] + [randstr() for j in range(2)])}
+		"args": lambda: {"lst": " ".join([str(randint(1,10**12))] + [randstr(),randstr()])}
 	},
 	{
 		"text": 'Выведите кортеж из наименьшего и наибольшего значения списка',
@@ -84,7 +84,7 @@ easy_questions=[
 	},
 	{
 		"text": 'Выведите первое введенное число в степени 2',
-		"func": ninth,
+		"func": nineth,
 		"args": lambda: {'a': randint(1,9),'b': randint(4,10)}
 	},
 	{

@@ -1,12 +1,12 @@
 {
-  "selected": "PyCharm",
+  "selected": "VScode",
   "PyCharm": {
     "font": {
       "name": "DejaVu Sans Mono",
       "size": 12
     },
-    "bg": "#1e1f22",
-    "second_bg": "#19191c",
+    "bg": "#2B2D30",
+    "second_bg": "#1e1f22",
     "syntax": {
       "keywords": "#f76f1b",
       "int": "#36adf7",

@@ -1,9 +1,19 @@
 from tkinter import Text
 from Testing.randfuncs import randstr
 
+from Widgets.CustomStyle import CustomStyle
+
 
 class StylishText(Text):
-	def __init__(self, widget, style, height, width, text=None, disabled=True, selection=True,fg=None):
+	def __init__(self, widget,
+	             style : CustomStyle,
+	             height : int,
+	             width : int,
+	             text=None,
+	             disabled=True,
+	             selection=True,
+	             fg=None):
+
 		if not fg:
 			fg = style.fg
 
@@ -12,6 +22,8 @@ class StylishText(Text):
 		                 font=style.font, foreground=fg)
 
 		self.style = style
+		self.fg = fg
+
 		if text:
 			self.insert("1.0", text)
 
@@ -30,12 +42,24 @@ class StylishText(Text):
 			self.bind("<Shift-Right>", disable_selection)
 			self.bind("<Control-a>", disable_selection)
 
-	def color_text(self, row, index, word, color):
-		tag_name = randstr()
-		self.tag_add(tag_name, f'{row}.{index - len(word)}', f'{row}.{index}')
-		self.tag_configure(tag_name, font=self.style.font, foreground=color)
-
 	def color_index(self, index1, index2, color):
-		tag_name = randstr()
+		tag_name = f'{index1}:{index2}'
 		self.tag_add(tag_name, f'{index1}', f'{index2}')
-		self.tag_configure(tag_name, font=self.style.font, foreground=color)
+		self.tag_configure(tag_name, foreground=color)
+
+	def write_text(self,text: str, index: str | None = None, clear: bool = True, color = None):
+		if not index:
+			index = '1.0'
+		if not color:
+			color = self.fg
+		disabled = self['state']=='disabled'
+		if disabled:
+			self.configure(state='normal')
+		if clear:
+			self.replace(1.0,'end','')
+
+		self.insert(index,text+'\n')
+		line,char = map(int,index.split("."))
+		self.color_index(index,f'{line+len(text.split('\n'))}.{len(text.split('\n')[-1])}',color)
+		if disabled:
+			self.configure(state='disabled')

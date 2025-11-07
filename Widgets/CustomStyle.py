@@ -34,11 +34,17 @@ class CustomStyle(ttk.Style):
         self.error = syntax['error']
 
         # --- Внешний вид виджетов ---#
+        self.theme_use('clam')
         self.configure(style = '.', font=self.font, bg=self.bg, foreground=self.fg)
         self.configure(style = 'TLabel', background=self.bg, font=self.font)
         self.configure(style = 'TFrame', background=self.bg)
         self.configure(style = 'TCombobox', background=self.bg,
-                       font=self.font,foreground=self.fg)
+                       font=self.font,foreground=self.fg,)
         self.map(style='TButton',
                  background=[("active", self.second_bg), ("!disabled", self.bg)],
                  foreground=[("active", self.second_fg), ("!disabled", self.fg)])
+
+        self.configure(style='Green.TButton', font=self.font)
+        self.map(style='Green.TButton',
+                  background=[("active", '#269b40'), ("!disabled", '#1c7f31')],
+                  foreground=[("active", "white"), ("!disabled", "#a0a0a0")])
