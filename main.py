@@ -1,6 +1,6 @@
 import json
 
-from tkinter import ttk
+from tkinter import ttk, TclError
 from tkinter import IntVar, StringVar, Variable
 from tkinter import Tk, Listbox
 from tkinter import END, SINGLE
@@ -9,8 +9,8 @@ from tkinter.colorchooser import askcolor
 
 from Testing.module_tests import check_output
 from Testing.module_writer import make_module
-from Questions.Easy import *
-from Questions.Normal import *
+from Questions.Easy import easy_questions
+from Questions.Normal import normal_questions
 from Widgets.CustomStyle import CustomStyle
 from Widgets.StylishText import StylishText
 from Widgets.CustomError import CustomError
@@ -36,10 +36,20 @@ class MainWindow(Tk):
         self.style = CustomStyle()
         self.configure(bg=self.style.bg)
 
+        self.protocol("WM_DELETE_WINDOW", self.close)
+
         # Переменные
         self.current_question = IntVar(value=-1)  # от 0 до 9, -1 если не задан
         self.difficulty = IntVar(value=-1)  # от 0 до 2, -1 если не задан
         self.question_text = StringVar()
+        self.error = None
+
+    def close(self):
+        try:
+            self.error.destroy()
+        except (AttributeError,TclError):
+            pass
+        self.destroy()
 
     def menu(self):
         for widget in self.winfo_children():
@@ -51,13 +61,21 @@ class MainWindow(Tk):
             self.add_text()
 
         #Само меню
-        ttk.Label(text='Выберите уровень сложности', font = self.style.header).pack(pady=(100, 70))
-        for i,text in enumerate(['Легкий','Средний','Сложный']):
-            ttk.Button(self, text=text, command=lambda x=i: set_difficulty(x), width=20).pack(pady=10)
+        ttk.Label(text='Выберите тип атаки', font = self.style.header).pack(pady=(100, 70))
+        ttk.Button(text = "SQL инъекция",command=self.sql_injection,width=20).pack(pady=(100, 70))
+        #for i,text in enumerate(['Легкий','Средний','Сложный']):
+        #    ttk.Button(self, text=text, command=lambda x=i: set_difficulty(x), width=20).pack(pady=10)
 
         # Выбор темы
         ttk.Label(text='Или посмотрите темы',font = self.style.header).pack(pady=(100, 70))
         ttk.Button(text='Темы', width=20,command=self.styles).pack(pady=10)
+
+    # Первое задание - Просто ввести в дневник SQL инъекцию
+    def sql_injection(self):
+        for widget in self.winfo_children():
+            widget.destroy()
+
+        ttk.Combobox(foreground='black').pack(expand=True,)
 
     # Менюшка с вопросами
     def add_text(self):
@@ -68,12 +86,14 @@ class MainWindow(Tk):
             """ Проверяет написанный код через stdin / stdout """
             make_module(ide.get('1.0', END))
             question = QUESTIONS[self.difficulty.get()][self.current_question.get()]
-            right,error = check_output(input_func=question['args'], output_func=question['func'])
+            right,error_text = check_output(input_func=question['args'], output_func=question['func'])
             if right:
                 errors_tab.write_text(text="Все верно!",clear=True,color='green')
-            if error:
-                errors_tab.write_text(text=error,clear=True)
-                CustomError(error,self.style)
+            if error_text:
+                errors_tab.write_text(text=error_text,clear=True)
+                if self.error is not None:
+                    self.error.destroy()
+                self.error = CustomError(error_text,self.style)
     
         def move_question(step):
             """ Навигация по вопросам """
@@ -153,7 +173,7 @@ class MainWindow(Tk):
             widget.destroy()
 
         def menu_wrapper():
-            with open('Styles.json', 'r', encoding='utf-8') as file:
+            with open('Widgets/Styles.json', 'r', encoding='utf-8') as file:
                 style_name = json.load(file)['selected']
 
             self.style = CustomStyle(style_name)
@@ -166,11 +186,11 @@ class MainWindow(Tk):
                 return
 
             #--- Изменение текущей темы ---#
-            with open('Styles.json',"r") as file:
+            with open('Widgets/Styles.json',"r") as file:
                 styles = json.load(file)
                 styles['selected'] = theme
 
-            with open('Styles.json', "w") as file:
+            with open('Widgets/Styles.json', "w") as file:
                 file.write(json.dumps(styles,indent=2))
 
             for i in widgets_frame.winfo_children():
