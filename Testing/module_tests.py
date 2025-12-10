@@ -5,8 +5,13 @@ import importlib
 from contextlib import redirect_stdout
 
 def check_output(input_func, output_func):
-	from Testing import temporary
-	importlib.reload(temporary)
+	try:
+		from Testing import temporary
+		importlib.reload(temporary)
+	except BaseException as e:
+		error = traceback.format_exc()
+		error = error.split('temporary.py", ')[-1]
+		return False, error
 	original_stdin = sys.stdin
 	sys_stdout = sys.stdout
 	is_right_output=[]

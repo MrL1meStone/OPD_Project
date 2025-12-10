@@ -1,33 +1,6 @@
 from random import randint, choice
 from Testing.randfuncs import randstr
 
-
-def second(lst):
-	return str(sum(list(map(int, lst.split(" ")))))
-
-
-def third(a):
-	return str(sum(ch.lower() in "aeiouаеёиоуыэюя" for ch in a))
-
-
-def fourth(a):
-	s = a.lower().replace(" ", "")
-	return str(s == s[::-1])
-
-
-def fifth(lst):
-	lst = list(map(int, lst.split()))
-	return str([i**2 for i in lst])
-
-
-def sixth(a):
-	return str("".join("*" if ch.isdigit() else ch for ch in a))
-
-
-def seventh(a):
-	return str([word for word in a.split() if len(word) > 3])
-
-
 def eighth(a):
 	result = {}
 	for ch in a:
@@ -35,49 +8,40 @@ def eighth(a):
 	return str(result)
 
 
-def nineth(lst):
-	lst = lst.split()
-	return str(list(dict.fromkeys(lst)))
-
-
-def tenth(a, b):
-	return str(a in range(0, b + 1))
-
-
 normal_questions = [
 	{
-		"text": 'Введите число и выведите четное оно или нет',
-		"func": lambda a: str("четное" if a % 2 == 0 else "нечетное"),
+		"text": 'Введите число и выведите "да" если четное, "нет" иначе',
+		"func": lambda a: str("да" if a % 2 == 0 else "нет"),
 		"args": lambda: {'a': str(randint(1, 1000))}
 	},
 	{
 		"text": "Введите несколько чисел через пробел и найдите их сумму.",
-		"func": second,
+		"func": lambda lst: str(sum(list(map(int, lst.split(" "))))),
 		"args": lambda: {'lst': " ".join([str(randint(-50, 50)) for _ in range(randint(3, 10))])}
 	},
 	{
 		"text": "Введите строку и узнайте, сколько в ней гласных букв.",
-		"func": third,
+		"func": lambda a: str(sum(ch.lower() in "aeiouаеёиоуыэюя" for ch in a)),
 		"args": lambda: {'a': randstr()}
 	},
 	{
 		"text": "Введите строку и проверьте, является ли она палиндромом.",
-		"func": fourth,
+		"func": lambda a: str(a.lower().replace(" ", "") == a.lower().replace(" ", "")[::-1]),
 		"args": lambda: {'a': choice(["казак", "дом", "шалаш", "python", "madam"])}
 	},
 	{
 		"text": "Введите несколько чисел через пробел и выведите их квадраты.",
-		"func": fifth,
+		"func": lambda lst: str([i**2 for i in list(map(int, lst.split()))]),
 		"args": lambda: {'lst': " ".join([str(randint(1, 10)) for _ in range(randint(3, 8))])}
 	},
 	{
 		"text": "Введите строку и замените все цифры символом *.",
-		"func": sixth,
+		"func": lambda a: str("".join("*" if ch.isdigit() else ch for ch in a)),
 		"args": lambda: {'a': "".join(choice("abc123xyz") for _ in range(randint(5, 12)))}
 	},
 	{
 		"text": "Введите несколько слов и выведите те, длина которых больше 3 символов.",
-		"func": seventh,
+		"func": lambda a: str([word for word in a.split() if len(word) > 3]),
 		"args": lambda: {'a': " ".join([randstr(randint(2, 6)) for _ in range(randint(4, 8))])}
 	},
 	{
@@ -87,12 +51,12 @@ normal_questions = [
 	},
 	{
 		"text": "Введите список слов и удалите из него дубликаты.",
-		"func": nineth,
+		"func": lambda lst: str(list(dict.fromkeys(lst.split()))),
 		"args": lambda: {'lst': " ".join([choice(["apple", "banana", "apple", "pear", "banana", "kiwi"]) for _ in range(randint(5, 8))])}
 	},
 	{
 		"text": "Введите два числа: проверьте, входит ли первое в диапазон от 0 до второго.",
-		"func": tenth,
+		"func": lambda a,b: str(a in range(0, b + 1)),
 		"args": lambda: {'a': randint(0, 10), 'b': randint(5, 15)}
 	}
 ]

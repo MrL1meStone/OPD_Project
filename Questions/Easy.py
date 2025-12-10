@@ -4,13 +4,13 @@ from Testing.randfuncs import randstr
 
 easy_questions=[
 	{   "text": 'Получите переменную через ввод в консоль и выведите ее',
-		"func": lambda x: str(x),
+		"func": lambda a: str(a),
 	    "args": lambda: {'a': randstr()}
 	},
 	{
 		"text": 'Получите 2 переменные через консоль и выведите их сумму',
-		"func": lambda x,y: str(x+y),
-		"args": lambda: {'a': randint(1, 10 ** 6), 'b': randint(1, 10 ** 6)}
+		"func": lambda a,b: str(a+b),
+		"args": lambda: {'a': str(randint(1, 10 ** 6)), 'b': str(randint(1, 10 ** 6))}
 	},
 	{
 		"text": 'Получите список строк и выведите список наборов (кортежей) вариантов строк:\n'

@@ -43,8 +43,7 @@ class CustomStyle(ttk.Style):
         self.configure('.', font=self.font, bg=self.bg, foreground=self.fg)
         self.configure('TLabel', background=self.bg, font=self.font)
         self.configure('TFrame', background=self.bg)
-        self.configure('Combobox', background=self.bg,
-                       font=self.font, foreground=self.fg, )
+
         self.map('TButton',
                  background=[("active", self.second_bg), ("!disabled", self.bg)],
                  foreground=[("active", self.second_fg), ("!disabled", self.fg)])
