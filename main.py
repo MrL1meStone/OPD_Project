@@ -1,6 +1,6 @@
 import json
 
-from tkinter import ttk
+from tkinter import ttk,messagebox
 from tkinter import StringVar,Variable,Listbox
 from tkinter import END
 from Testing.module_tests import check_output
@@ -11,6 +11,7 @@ from Widgets.StylishText import StylishText
 from Widgets.CustomError import CustomError
 from Widgets.BaseWindow import BaseWindow
 from Widgets.CustomStyle import CustomStyle
+from Widgets.StatsWindow import StatsWindow
 from Widgets.IDE import IDE
 
 QUESTIONS = [easy_questions, normal_questions]  # hard_questions
@@ -112,7 +113,8 @@ class MainWindow(BaseWindow):
                     self.add_text()
             if error_text:
                 CustomError(error_text, self.style)
-            # if not right and not error_text:
+            if not right and not error_text:
+                messagebox.showinfo("Неверный ответ!","Код работает,но не выполняет свою функцию")
 
         button_menu = ttk.Frame(code_space)
         button_menu.columnconfigure(3)
