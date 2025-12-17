@@ -1,17 +1,10 @@
 from random import randint, choice
 from Testing.randfuncs import randstr
 
-def eighth(a):
-	result = {}
-	for ch in a:
-		result[ch] = result.get(ch, 0) + 1
-	return str(result)
-
-
 normal_questions = [
 	{
 		"text": 'Введите число и выведите "да" если четное, "нет" иначе',
-		"func": lambda a: str("да" if a % 2 == 0 else "нет"),
+		"func": lambda a: 'да' if int(a) % 2 == 0 else 'нет',
 		"args": lambda: {'a': str(randint(1, 1000))}
 	},
 	{
@@ -46,7 +39,7 @@ normal_questions = [
 	},
 	{
 		"text": "Введите строку и выведите, сколько раз встречается каждый символ.",
-		"func": eighth,
+		"func": lambda a: str({ch: a.count(ch) for ch in a}),
 		"args": lambda: {'a': randstr()}
 	},
 	{

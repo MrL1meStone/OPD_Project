@@ -1,25 +1,34 @@
 import json
 
-from tkinter import ttk,messagebox
-from tkinter import StringVar,Variable,Listbox
+from tkinter import ttk, messagebox, Tk
+from tkinter import StringVar, Variable, Listbox
 from tkinter import END
 from Testing.module_tests import check_output
 from Testing.module_writer import make_module
 from Questions.Easy import easy_questions
 from Questions.Normal import normal_questions
+from Questions.Hard import hard_questions
 from Widgets.StylishText import StylishText
 from Widgets.CustomError import CustomError
-from Widgets.BaseWindow import BaseWindow
 from Widgets.CustomStyle import CustomStyle
-from Widgets.StatsWindow import StatsWindow
+from Widgets.InfoWindow import InfoWindow
 from Widgets.IDE import IDE
 
-QUESTIONS = [easy_questions, normal_questions]  # hard_questions
+QUESTIONS = [easy_questions, normal_questions, hard_questions]
 
 
-class MainWindow(BaseWindow):
+class MainWindow(Tk):
     def __init__(self):
-        super().__init__(0.5, 0.6)
+        super().__init__()
+        screen_weight, screen_height = self.wm_maxsize()
+        size = (int(screen_weight * 0.5), int(screen_height * 0.6))
+        self.size = size
+        self.geometry(f"{size[0]}x{size[1]}"
+                      f"+{(screen_weight - size[0]) // 2}"
+                      f"+{(screen_height - size[1]) // 2}")
+
+        self.style = CustomStyle()
+        self.configure(bg=self.style.bg)
         # Центрирование и название
         self.title("Тест по знанию Python")
 
@@ -28,6 +37,11 @@ class MainWindow(BaseWindow):
         self.difficulty = 0
         self.question_text = StringVar()
         self.summary = [False] * 10
+
+        self.show_window(InfoWindow)
+
+    def show_window(self, window):
+        window(self)
 
     def menu(self):
         for widget in self.winfo_children():
@@ -39,7 +53,7 @@ class MainWindow(BaseWindow):
             self.add_text()
 
         # Само меню
-        ttk.Label(text='Выберите тип атаки', font=self.style.header).pack(pady=(100, 70))
+        ttk.Label(text='Выберите сложность', font=self.style.header).pack(pady=(100, 70))
         for i, text in enumerate(['Легкий', 'Средний', 'Сложный']):
             ttk.Button(self, text=text, command=lambda x=i: set_difficulty(x), width=20).pack(pady=10)
 
@@ -114,7 +128,7 @@ class MainWindow(BaseWindow):
             if error_text:
                 CustomError(error_text, self.style)
             if not right and not error_text:
-                messagebox.showinfo("Неверный ответ!","Код работает,но не выполняет свою функцию")
+                messagebox.showinfo("Неверный ответ!", "Код работает,но не выполняет свою функцию")
 
         button_menu = ttk.Frame(code_space)
         button_menu.columnconfigure(3)
@@ -174,7 +188,7 @@ class MainWindow(BaseWindow):
         main_frame = ttk.Frame(self)
         # --- Выбор тем ---#
         ttk.Button(self, text='< Меню', command=menu_wrapper
-                   ).pack(anchor='nw',pady=100,padx=100)
+                   ).pack(anchor='nw', pady=100, padx=100)
         style_frame = ttk.Frame(main_frame)
         themes = tuple(self.style.all_styles.keys())
         variable = Variable(value=themes[1:])

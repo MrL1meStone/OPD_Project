@@ -1,9 +1,9 @@
-from tkinter import Tk
+from tkinter import Tk, Toplevel
 
 from Widgets.CustomStyle import CustomStyle
 
 
-class BaseWindow(Tk):
+class BaseWindow(Toplevel):
     def __init__(self, weight_percent, height_percent):
         super().__init__()
         screen_weight, screen_height = self.wm_maxsize()
